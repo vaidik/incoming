@@ -9,7 +9,7 @@ class Types(object):
         raise NotImplementedError('validate() method must be implemented in '
             'the sub-class.')
 
-    def test(self, obj, key, val, payload):
+    def test(self, payload_obj, key, val, payload):
         try:
             method = getattr(self, 'validate')
         except AttributeError:
@@ -20,8 +20,8 @@ class Types(object):
                     'either as a method of the class or a staticmethod of the '
                     'class.')
 
-        if not method(val, key=key, payload=payload, obj=obj):
-            obj.error_push(key, self.error)
+        if not method(val, key=key, payload=payload, payload_obj=payload_obj):
+            payload_obj.error_prepend(key, self.error)
             return False
 
         return True
@@ -127,28 +127,48 @@ class Function(Types):
         super(Function, self).__init__(*args, **kwargs)
 
     def validate(self, val, *args, **kwargs):
-        obj = kwargs['obj']
+        payload_obj = kwargs['payload_obj']
 
         # if a method from implemented class is provided
         if self.method:
             try:
-                caller = getattr(obj, self.method)
+                caller = getattr(payload_obj, self.method)
             except AttributeError:
                 try:
-                    caller = getattr(obj.__class__, self.method)
+                    caller = getattr(payload_obj.__class__, self.method)
                 except AttributeError:
                     raise NotImplementedError('method %s() has not been '
                         'implemented.' % self.method)
 
         # if a global function is provided
         else:
-            try:
-                caller = globals()[self.function]
-            except KeyError:
-                raise NotImplementedError('function %s() has not been '
-                    'implemented.' % self.function)
+            caller = self.function
 
         if not caller(val, *args, **kwargs):
+            return False
+
+        return True
+
+
+class JSON(Types):
+    def __init__(self, cls, *args, **kwargs):
+        self._default_error = 'Invalid data. Expected JSON.'
+
+        self.cls = cls
+
+        super(JSON, self).__init__(*args, **kwargs)
+
+    def validate(self, val, *args, **kwargs):
+        if not isinstance(val, dict):
+            return False
+
+        payload_obj = kwargs['payload_obj']
+
+        obj = self.cls(anyjson.dumps(val))
+        is_valid, result = obj.validate()
+
+        if not is_valid:
+            payload_obj.error_push(kwargs['key'], result)
             return False
 
         return True
@@ -177,6 +197,12 @@ class Payload(object):
         except KeyError:
             self._errors[key] = [error]
 
+    def error_prepend(self, key, error):
+        try:
+            self._errors[key].insert(0, error)
+        except:
+            self._errors[key] = [error]
+
     def validate(self, *args, **kwargs):
         strict = kwargs.get('strict', None) or self.strict
         strict_error = kwargs.get('strict_error', None) or self.strict_error
@@ -192,6 +218,9 @@ class Payload(object):
 
             properties = self.schema[key]
             for rule in properties['rules']:
+                if key == 'class':
+                    #import pdb; pdb.set_trace()
+                    pass
                 rule.test(self, key, value, self._parsed)
 
             fields.remove(key)
@@ -205,4 +234,4 @@ class Payload(object):
         errors = self._errors.copy()
         self._errors = {}
 
-        return errors
+        return (False, errors) if len(errors.keys()) else (False, None)
