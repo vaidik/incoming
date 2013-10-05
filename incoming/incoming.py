@@ -1,64 +1,191 @@
-import anyjson
+'''
+    incoming.incoming
+    ~~~~~~~~~~~~~~~~~
+
+    Core module for the framework.
+'''
+
+import copy
+
+from .datatypes import Function, JSON, Types
 
 
-class Payload(object):
-    schema = {}
-    field_strict = False
-    required = True
+class PayloadErrors(object):
 
-    def __init__(self, payload, required=True, strict=False,
-                 strict_error='Unexpected field.'):
-        self._payload = payload
-        self._parsed = anyjson.loads(payload)
+    '''
+    PayloadErrors holds errors detected by :class:`PayloadValidator` and
+    provides helper methods for working with errors. An instance of this
+    class maintains a dictionary of errors where the keys are supposed to be
+    the type of error and the value of the keys are :class:`list` objects that
+    hold error strings.
 
-        self.required = required
+    Ideally, the keys should be name of the field/key in the payload and the
+    value should be a :class:`list` object that holds errors related to that
+    field.
+    '''
 
-        self.strict = strict
-        self.strict_error = strict_error
-
+    def __init__(self):
         self._errors = {}
 
-    def error_push(self, key, error):
+    def prepend(self, key, error):
+        '''
+        Prepends error in the list of a particular type of error.
+
+        :param str key: key used to hold errors of a particular type.
+        :param str error: the error string that needs to be logged.
+        '''
+
+        try:
+            self._errors[key].insert(0, error)
+        except KeyError:
+            self._errors[key] = [error]
+
+    def append(self, key, error):
+        '''
+        Appends error in the list of a particular type of error.
+
+        :param str key: key used to hold errors of a particular type.
+        :param str error: the error string that needs to be logged.
+        '''
+
         try:
             self._errors[key].append(error)
         except KeyError:
             self._errors[key] = [error]
 
-    def error_prepend(self, key, error):
-        try:
-            self._errors[key].insert(0, error)
-        except:
-            self._errors[key] = [error]
+    def has_errors(self):
+        '''
+        Checks if any errors were added to an object of this class.
 
-    def validate(self, *args, **kwargs):
-        strict = kwargs.get('strict', None) or self.strict
-        strict_error = kwargs.get('strict_error', None) or self.strict_error
-        errors = {}
+        :returns bool: True if has errors, else False.
+        '''
 
-        fields = self.schema.keys()
+        return True if len(self._errors.keys()) else False
 
-        for key, value in self._parsed.iteritems():
-            if key not in self.schema.keys():
-                if strict is True:
-                    errors[key] = strict_error
-                continue
+    def to_dict(self):
+        '''
+        Return a :class:`dict` of errors with keys as the type of error and
+        values as a list of errors.
 
-            properties = self.schema[key]
-            for rule in properties['rules']:
-                if key == 'class':
-                    #import pdb; pdb.set_trace()
-                    pass
-                rule.test(self, key, value, self._parsed)
+        :returns dict: a dictionary of errors
+        '''
 
-            fields.remove(key)
+        return self._errors
+
+    def __contains__(self, key):
+        '''
+        Override ``in`` operator. When ``in`` operator is used on an instance
+        of this class, a check for membership in the type of errors will be
+        performed.
+
+        :param str key: key or type of error to be looked up.
+        :returns bool: the test result of membership of the provided key
+        '''
+
+        return key in self._errors.keys()
+
+
+class PayloadValidator(object):
+
+    '''
+    Main validator class that must be sub-classed to define the schema for
+    validating incoming payload.
+    '''
+
+    required = True
+    required_error = 'Expecting a value for this field.'
+
+    strict = False
+    strict_error = 'Unexpected field.'
+
+    def __init__(self, *args, **kwargs):
+        self._fields = self._collect_fields()
+        self._string_args_replaced = False
+
+    def _collect_fields(self):
+        '''
+        Collects all the attributes that are instance of
+        :class:`incoming.datatypes.Types`. These attributes are used for
+        defining rules of validation for every field/key in the incoming JSON
+        payload.
+
+        :returns: a tuple of attribute names from an instance of a sub-class
+                  of :class:`PayloadValidator`.
+        '''
+
+        fields = []
+        for prop in dir(self):
+            if isinstance(getattr(self, prop), Types):
+                fields.append(prop)
+
+        return tuple(fields)
+
+    def _replace_string_args(self):
+        '''
+        A helper method that makes passing custom validators implemented as
+        methods to :class:`incoming.datatypes.Function` instances.
+        '''
+
+        if self._string_args_replaced:
+            return
+
+        for field in self._fields:
+            field = getattr(self, field)
+            if isinstance(field, Function):
+                if isinstance(field.func, str):
+                    field.func = getattr(self, field.func)
+            elif isinstance(field, JSON):
+                if isinstance(field.cls, str):
+                    field.cls = getattr(self, field.cls)
+
+        self._string_args_replaced = True
+
+    def validate(self, payload, required=None, strict=None):
+        '''
+        Validates a given JSON payload according to the rules defiined for all
+        the fields/keys in the sub-class.
+
+        :param payload: deserialized JSON object.
+        :param bool required: if every field/key is required and must be
+                              present in the payload.
+        :param bool strict: if :method:`validate` should detect and report any
+                            fields/keys that are present in the payload but not
+                            defined in the sub-class.
+
+        :returns: a tuple of two items. First item is a :class:`bool`
+                  indicating if the payload was successfully validated and the
+                  second item is ``None``. If the payload was not valid, then
+                  then the second item is a :class:`dict` of errors.
+        '''
+
+        # replace datatypes.Function.func if not already replaced
+        self._replace_string_args()
+
+        required = required if required is not None else self.required
+        strict = strict if strict is not None else self.strict
+
+        errors = PayloadErrors()
+        fields = copy.deepcopy(list(self._fields))
+
+        for key, value in payload.iteritems():
+            if key not in self._fields:
+                if strict:
+                    errors.append(key, self.strict_error)
+            else:
+                getattr(self, key).test(key, value, payload, errors)
+
+                # Remove the key that has been checked
+                fields.remove(key)
 
         for field in fields:
-            if self.schema[field].get('required', self.required):
-                self.error_push(field, self.schema[field].get('missing_error',
-                                                              None)
-                    or 'Expecting a value for this field.')
+            rule = getattr(self, field)
 
-        errors = self._errors.copy()
-        self._errors = {}
+            if rule.required is None:
+                if required:
+                    errors.append(field, self.required_error)
+            else:
+                if rule.required:
+                    errors.append(field, self.required_error)
 
-        return (False, errors) if len(errors.keys()) else (False, None)
+        return (False, errors.to_dict()) if errors.has_errors() else (True,
+                                                                      None)

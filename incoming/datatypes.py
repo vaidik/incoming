@@ -1,15 +1,64 @@
-import anyjson
+'''
+    incoming.datatypes
+    ~~~~~~~~~~~~~~~~~~
+
+    Datatypes that can be used to define the rules of validation.
+'''
 
 
 class Types(object):
-    def __init__(self, *args, **kwargs):
-        self.error = kwargs.get('error', None) or self._default_error
+
+    '''
+    Base class for creating new datatypes for validation. When this class is
+    sub-classed, :method:`validate` must be implemented in the sub-class and
+    this method will be resposible for the actual validation.
+    '''
+
+    def __init__(self, required=None, error=None, *args, **kwargs):
+        '''
+        Types base-class constructor.
+
+        :param bool required: if a particular (this) field is required or not.
+                              This param allows specifying field level setting
+                              if a particular field is required or not.
+        :param str error: a generic error message that will be used by
+                          :class:`incoming.PayloadValidator` in the returned
+                          :class:`incoming.incoming.PayloadErrors` object when
+                          the validation test fails.
+        '''
+
+        self.required = required
+        self.error = error or self._DEFAULT_ERROR
 
     def validate(self, val, *args, **kwargs):
-        raise NotImplementedError('validate() method must be implemented in '
-            'the sub-class.')
+        '''
+        This method must be overridden by the sub-class for implementing the
+        validation test. The overridden method can be a regular method or
+        ``classmethod`` or ``staticmethod``. This method must only return a
+        :class:`bool` value.
 
-    def test(self, payload_obj, key, val, payload):
+        :param val: the value that has to be validated.
+
+        :returns bool: if the implemented validation test passed or not.
+        '''
+
+        raise NotImplementedError('validate() method must be implemented in '
+                                  'the sub-class.')
+
+    def test(self, key, val, payload, errors):
+        '''
+        Responsible for running the validate method. This method hides the gory
+        checks of identifying if the validate method is a normal method or a
+        ``staticmethod`` or a ``classmethod``. This method is more of a helper
+        for :class:`PayloadValidator`.
+
+        :param str key: the key who's value is going to get validated.
+        :param val: the value on which the test is to be validated.
+        :param payload: the entire payload to which the key and val belong to.
+        :param errors: :class:`incoming.incoming.PayloadErrors` object.
+        :returns bool: if the validation passed, depends on validate.
+        '''
+
         try:
             method = getattr(self, 'validate')
         except AttributeError:
@@ -17,24 +66,38 @@ class Types(object):
                 method = self.__class__.validate
             except AttributeError:
                 raise NotImplementedError('validate() must be implemented '
-                    'either as a method of the class or a staticmethod of the '
-                    'class.')
+                                          'either as a method of the class or'
+                                          'a staticmethod of the class.')
 
-        if not method(val, key=key, payload=payload, payload_obj=payload_obj):
-            payload_obj.error_prepend(key, self.error)
+        result = method(val, key=key, payload=payload, errors=errors)
+
+        # Check if the value returned by the validate method is a boolean
+        if not isinstance(result, bool):
+            raise TypeError('The value returned by validate() method must be '
+                            'a bool value.')
+
+        if not result:
+            errors.prepend(key, self.error)
             return False
 
         return True
 
 
 class Integer(Types):
-    def __init__(self, *args, **kwargs):
-        self._default_error = 'Invalid data. Expected an integer.'
 
-        super(Integer, self).__init__(*args, **kwargs)
+    '''
+    Sub-class of :class:`Types` class for Integer type. Validates if a value is
+    a :class:`int` value.
+    '''
+
+    _DEFAULT_ERROR = 'Invalid data. Expected an integer.'
 
     @staticmethod
     def validate(val, *args, **kwargs):
+        '''
+        Test for checking if a value is :class:`int`.
+        '''
+
         if not isinstance(val, int):
             return False
 
@@ -42,13 +105,20 @@ class Integer(Types):
 
 
 class Float(Types):
-    def __init__(self, *args, **kwargs):
-        self._default_error = 'Invalid data. Expected a float.'
 
-        super(Float, self).__init__(*args, **kwargs)
+    '''
+    Sub-class of :class:`Types` class for Float type. Validates if a value is
+    a :class:`float` value.
+    '''
+
+    _DEFAULT_ERROR = 'Invalid data. Expected a float.'
 
     @staticmethod
     def validate(val, *args, **kwargs):
+        '''
+        Test for checking if a value is :class:`float`.
+        '''
+
         if not isinstance(val, float):
             return False
 
@@ -56,13 +126,20 @@ class Float(Types):
 
 
 class Number(Types):
-    def __init__(self, *args, **kwargs):
-        self._default_error = 'Invalid data. Expected an integer or a float).'
 
-        super(Number, self).__init__(*args, **kwargs)
+    '''
+    Sub-class of :class:`Types` class for Number type. Validates if a value is
+    a :class:`int` value or :class:`float` value.
+    '''
+
+    _DEFAULT_ERROR = 'Invalid data. Expected an integer or a float).'
 
     @staticmethod
     def validate(val, *args, **kwargs):
+        '''
+        Test for checking if a value is :class:`int` or :class:`float`.
+        '''
+
         if not Integer.validate(val) and not Float.validate(val):
             return False
 
@@ -70,27 +147,41 @@ class Number(Types):
 
 
 class String(Types):
-    def __init__(self, *args, **kwargs):
-        self._default_error = 'Invalid data. Expected a string.'
 
-        super(String, self).__init__(*args, **kwargs)
+    '''
+    Sub-class of :class:`Types` class for String type. Validates if a value is
+    a :class:`str` value or :class:`unicode` value.
+    '''
+
+    _DEFAULT_ERROR = 'Invalid data. Expected a string.'
 
     @staticmethod
     def validate(val, *args, **kwargs):
-        if not isinstance(val, str):
+        '''
+        Test for checking if a value is :class:`str`.
+        '''
+
+        if not isinstance(val, str) and not isinstance(val, unicode):
             return False
 
         return True
 
 
 class Array(Types):
-    def __init__(self, *args, **kwargs):
-        self._default_error = 'Invalid data. Expected an array.'
 
-        super(Array, self).__init__(*args, **kwargs)
+    '''
+    Sub-class of :class:`Types` class for Array type. Validates if a value is
+    a :class:`list` object.
+    '''
+
+    _DEFAULT_ERROR = 'Invalid data. Expected an array.'
 
     @staticmethod
     def validate(val, *args, **kwargs):
+        '''
+        Test for checking if a value is :class:`list` (array).
+        '''
+
         if not isinstance(val, list):
             return False
 
@@ -98,10 +189,13 @@ class Array(Types):
 
 
 class Boolean(Types):
-    def __init__(self, *args, **kwargs):
-        self._default_error = 'Invalid data. Expected a boolean value.'
 
-        super(Boolean, self).__init__(*args, **kwargs)
+    '''
+    Sub-class of :class:`Types` class for Boolean type. Validates if a value is
+    a :class:`bool`.
+    '''
+
+    _DEFAULT_ERROR = 'Invalid data. Expected a boolean value.'
 
     @staticmethod
     def validate(val, *args, **kwargs):
@@ -112,63 +206,71 @@ class Boolean(Types):
 
 
 class Function(Types):
-    def __init__(self, method=None, function=None, *args, **kwargs):
-        if method is not None and function is not None:
-            raise TypeError('Amongst method and function attributes, only one '
-                'must be provided.')
-        elif method is None and function is None:
-            raise TypeError('Either method or function attribute must be '
-                'provided.')
 
-        self.method = method
-        self.function = function
+    '''
+    Sub-class of :class:`Types` class for Function type. This type allows using
+    functions for validation. Using :class:`incoming.datatypes.Function`,
+    validation tests can be written in a function or a regular method, a
+    ``staticmethod`` or a ``classmethod`` on the sub-class of
+    :class:`incoming.PayloadValidator`.
+    '''
 
-        self._default_error = 'Invalid data.'
+    _DEFAULT_ERROR = 'Invalid data.'
+
+    def __init__(self, func, *args, **kwargs):
+        '''
+        :param func: any callable that accepts ``val``, ``*args`` and
+                     ``**kwawrgs`` and returns a :class:`bool` value, True
+                     if ``val`` validates, False otherwise.
+        '''
+
+        if not callable(func) and not isinstance(func, str):
+            raise TypeError('function must be a callable or a string '
+                            'representing method belonging to the validator '
+                            'class.')
+
+        self.func = func
+
         super(Function, self).__init__(*args, **kwargs)
 
     def validate(self, val, *args, **kwargs):
-        payload_obj = kwargs['payload_obj']
+        result = self.func(val, *args, **kwargs)
+        if not isinstance(result, bool):
+            raise ValueError('Validation function does not return a bool.')
 
-        # if a method from implemented class is provided
-        if self.method:
-            try:
-                caller = getattr(payload_obj, self.method)
-            except AttributeError:
-                try:
-                    caller = getattr(payload_obj.__class__, self.method)
-                except AttributeError:
-                    raise NotImplementedError('method %s() has not been '
-                        'implemented.' % self.method)
-
-        # if a global function is provided
-        else:
-            caller = self.function
-
-        if not caller(val, *args, **kwargs):
-            return False
-
-        return True
+        return result
 
 
 class JSON(Types):
+
+    '''
+    Sub-class of :class:`Types` class for JSON type. This type allows writing
+    validation for nested JSON.
+    '''
+
+    _DEFAULT_ERROR = 'Invalid data. Expected JSON.'
+
     def __init__(self, cls, *args, **kwargs):
-        self._default_error = 'Invalid data. Expected JSON.'
+        '''
+        :param cls: sub-class of :class:`incoming.PayloadValidator` for
+                    validating nested JSON. Class object can be accepted. In
+                    case you want to have the class nested withing the parent
+                    validator, you can pass the name of the class as a string
+                    as well.
+        '''
 
         self.cls = cls
-
         super(JSON, self).__init__(*args, **kwargs)
 
     def validate(self, val, *args, **kwargs):
         if not isinstance(val, dict):
             return False
 
-        payload_obj = kwargs['payload_obj']
-
-        obj = self.cls(anyjson.dumps(val))
-        is_valid, result = obj.validate()
+        obj = self.cls()
+        is_valid, result = obj.validate(val)
 
         if not is_valid:
-            payload_obj.error_push(kwargs['key'], result)
+            kwargs['errors'].append(kwargs['key'], result)
             return False
 
         return True
