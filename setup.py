@@ -6,9 +6,7 @@ import sys
 from incoming import __version__
 from setuptools import setup, find_packages
 
-install_requires = []
-if sys.version_info <= (2, 6):
-    install_requires.append('simplejson')
+install_requires = ['pytest==2.4.1']
 
 description = ''
 
