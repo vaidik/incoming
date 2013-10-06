@@ -127,6 +127,13 @@ Run the above script, you shall get a response like so::
       ]
     }
 
+Documentation
+-------------
+
+Documentation is available on `Read The Docs`_.
+
+.. _Read The Docs: http://incoming.readthedocs.org/en/latest/
+
 Tests
 -----
 
