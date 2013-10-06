@@ -15,7 +15,12 @@ for file_ in ('README.rst', 'LICENSE'):
     with open(path('%s' % file_)) as f:
         description += f.read() + '\n\n'
 
-classifiers = ["Programming Language :: Python"]
+classifiers = [
+    "Programming Language :: Python",
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+]
 
 
 setup(name='incoming',
