@@ -7,12 +7,13 @@
 
 import unittest
 
+from . import TestCase
 from .. import datatypes
 from ..incoming import PayloadErrors
 from ..incoming import PayloadValidator
 
 
-class TestPayloadErrors(unittest.TestCase):
+class TestPayloadErrors(TestCase):
 
     def setUp(self):
         self.error_key = 'error_key'
@@ -93,7 +94,7 @@ class TestPayloadErrors(unittest.TestCase):
         self.assertFalse('key3' in errors)
 
 
-class TestPayloadValidator(unittest.TestCase):
+class TestPayloadValidator(TestCase):
 
     def setUp(self):
         class DummyValidator(PayloadValidator):
@@ -386,7 +387,7 @@ class TestPayloadValidator(unittest.TestCase):
         self.assertTrue(result)
 
 
-class TestNestedPayloadValidator(unittest.TestCase):
+class TestNestedPayloadValidator(TestCase):
 
     def test_validates_nested_json_when_cls_is_global(self):
         class AddressValidator(PayloadValidator):

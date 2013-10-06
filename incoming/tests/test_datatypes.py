@@ -7,11 +7,12 @@
 
 import unittest
 
+from . import TestCase
 from .. import datatypes
 from ..incoming import PayloadErrors, PayloadValidator
 
 
-class TestTypes(unittest.TestCase):
+class TestTypes(TestCase):
 
     def test_init_raises_attribute_error(self):
         self.assertRaises(AttributeError, datatypes.Types)
@@ -23,7 +24,7 @@ class TestTypes(unittest.TestCase):
         self.assertRaises(NotImplementedError, SomeType().validate, 'test')
 
 
-class TestInteger(unittest.TestCase):
+class TestInteger(TestCase):
 
     def test_integer_validates(self):
         self.assertTrue(datatypes.Integer.validate(2))
@@ -31,7 +32,7 @@ class TestInteger(unittest.TestCase):
         self.assertFalse(datatypes.Integer.validate(2.1))
 
 
-class TestFloat(unittest.TestCase):
+class TestFloat(TestCase):
 
     def test_float_validates(self):
         self.assertFalse(datatypes.Float.validate(2))
@@ -40,7 +41,7 @@ class TestFloat(unittest.TestCase):
         self.assertTrue(datatypes.Float.validate(-2.1))
 
 
-class TestNumber(unittest.TestCase):
+class TestNumber(TestCase):
 
     def test_number_validates(self):
         self.assertTrue(datatypes.Number.validate(2))
@@ -49,7 +50,7 @@ class TestNumber(unittest.TestCase):
         self.assertTrue(datatypes.Number.validate(-2.1))
 
 
-class TestString(unittest.TestCase):
+class TestString(TestCase):
 
     def test_string_validates(self):
         self.assertTrue(datatypes.String.validate('Some string'))
@@ -58,21 +59,21 @@ class TestString(unittest.TestCase):
         self.assertFalse(datatypes.String.validate(1))
 
 
-class TestArray(unittest.TestCase):
+class TestArray(TestCase):
 
     def test_array_validates(self):
         self.assertTrue(datatypes.Array.validate(['item1', 'item2']))
         self.assertFalse(datatypes.Array.validate({}))
 
 
-class TestBoolean(unittest.TestCase):
+class TestBoolean(TestCase):
 
     def test_boolean_validates(self):
         self.assertTrue(datatypes.Boolean.validate(True))
         self.assertTrue(datatypes.Boolean.validate(False))
 
 
-class TestFunction(unittest.TestCase):
+class TestFunction(TestCase):
 
     def test_function_validates_with_function(self):
         def test_func(val, *args, **kwargs):
@@ -122,7 +123,7 @@ class TestFunction(unittest.TestCase):
             func=PseudoNameSpace().test_func_regular).validate(18))
 
 
-class TestJSON(unittest.TestCase):
+class TestJSON(TestCase):
 
     def test_json_validates_normal_types(self):
         class CustomJSONValidator(PayloadValidator):
