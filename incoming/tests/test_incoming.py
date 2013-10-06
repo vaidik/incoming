@@ -109,6 +109,12 @@ class TestPayloadValidator(unittest.TestCase):
         self.assertTrue(isinstance(fields, tuple))
         self.assertItemsEqual(fields, ['name', 'age', 'hobbies'])
 
+    def test_collected_fields_raises_exception_on_no_fields(self):
+        class DummyValidator(PayloadValidator):
+            pass
+
+        self.assertRaises(Exception, DummyValidator)
+
     def test_validate_returns_tuple(self):
         validator = self.DummyValidator()
 

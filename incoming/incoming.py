@@ -92,10 +92,31 @@ class PayloadValidator(object):
     validating incoming payload.
     '''
 
+    #: If all fields/keys are required by default
+    #: When required is set in the :class:`incoming.PayloadValidator`
+    #: sub-class, then all the fields are required by default. In case a field
+    #: must not be required, it should be set at the field/key level.
+    #:
+    #: .. note:: this attribute can be overridden in the sub-class.
     required = True
+
+    #: Error message used for reporting when a required field is missing
+    #:
+    #: .. note:: this attribute can be overridden in the sub-class.
     required_error = 'Expecting a value for this field.'
 
+    #: ``strict`` mode is off by default.
+    #: ``strict`` mode makes sure that any field that is not defined in the
+    #: schema, validation result would fail and the extra key would be reported
+    #: in errors.
+    #:
+    #: .. note:: this attribute can be overridden in the sub-class.
     strict = False
+
+    #: The error message that will be used when ``strict`` mode is on and an
+    #: extra field is present in the payload.
+    #:
+    #: .. note:: this attribute can be overridden in the sub-class.
     strict_error = 'Unexpected field.'
 
     def __init__(self, *args, **kwargs):
@@ -117,6 +138,9 @@ class PayloadValidator(object):
         for prop in dir(self):
             if isinstance(getattr(self, prop), Types):
                 fields.append(prop)
+
+        if not len(fields):
+            raise Exception('No keys/fields defined in the validator class.')
 
         return tuple(fields)
 
@@ -145,17 +169,17 @@ class PayloadValidator(object):
         Validates a given JSON payload according to the rules defiined for all
         the fields/keys in the sub-class.
 
-        :param payload: deserialized JSON object.
+        :param dict payload: deserialized JSON object.
         :param bool required: if every field/key is required and must be
                               present in the payload.
-        :param bool strict: if :method:`validate` should detect and report any
+        :param bool strict: if :py:meth:`validate` should detect and report any
                             fields/keys that are present in the payload but not
                             defined in the sub-class.
 
         :returns: a tuple of two items. First item is a :class:`bool`
                   indicating if the payload was successfully validated and the
                   second item is ``None``. If the payload was not valid, then
-                  then the second item is a :class:`dict` of errors.
+                  then the second item is a :py:class:`dict` of errors.
         '''
 
         # replace datatypes.Function.func if not already replaced

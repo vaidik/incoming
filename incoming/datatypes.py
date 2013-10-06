@@ -10,14 +10,12 @@ class Types(object):
 
     '''
     Base class for creating new datatypes for validation. When this class is
-    sub-classed, :method:`validate` must be implemented in the sub-class and
+    sub-classed, :meth:`validate` must be implemented in the sub-class and
     this method will be resposible for the actual validation.
     '''
 
     def __init__(self, required=None, error=None, *args, **kwargs):
         '''
-        Types base-class constructor.
-
         :param bool required: if a particular (this) field is required or not.
                               This param allows specifying field level setting
                               if a particular field is required or not.
@@ -50,7 +48,7 @@ class Types(object):
         Responsible for running the validate method. This method hides the gory
         checks of identifying if the validate method is a normal method or a
         ``staticmethod`` or a ``classmethod``. This method is more of a helper
-        for :class:`PayloadValidator`.
+        for :class:`incoming.PayloadValidator`.
 
         :param str key: the key who's value is going to get validated.
         :param val: the value on which the test is to be validated.
