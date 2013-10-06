@@ -3,6 +3,8 @@ incoming: JSON validation framework for Python
 
 **incoming** is a JSON validation framework.
 
+.. image:: https://travis-ci.org/vaidik/incoming.png
+
 Overview
 --------
 
