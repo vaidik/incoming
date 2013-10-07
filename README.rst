@@ -36,7 +36,7 @@ Installation is simple.
 
 .. code:: bash
 
-    python setup.py install
+    pip install incoming
 
 Basic Usage
 -----------
