@@ -81,7 +81,24 @@ class Types(object):
         return True
 
 
-class Integer(Types):
+class Instance(Types):
+    '''
+    Sub-class of :class:`Types` class for Integer type. Validates if a value is
+    of a given type or not.
+
+    This class should not be used directly, it should be subclassed
+    '''
+    type_ = None
+
+    @classmethod
+    def validate(cls, val, *args, **kwargs):
+        if cls.type_ is None:
+            raise NotImplementedError
+        else:
+            return isinstance(val, cls.type_)
+
+
+class Integer(Instance):
 
     '''
     Sub-class of :class:`Types` class for Integer type. Validates if a value is
@@ -89,20 +106,10 @@ class Integer(Types):
     '''
 
     _DEFAULT_ERROR = 'Invalid data. Expected an integer.'
-
-    @staticmethod
-    def validate(val, *args, **kwargs):
-        '''
-        Test for checking if a value is :class:`int`.
-        '''
-
-        if not isinstance(val, int):
-            return False
-
-        return True
+    type_ = int
 
 
-class Float(Types):
+class Float(Instance):
 
     '''
     Sub-class of :class:`Types` class for Float type. Validates if a value is
@@ -110,20 +117,10 @@ class Float(Types):
     '''
 
     _DEFAULT_ERROR = 'Invalid data. Expected a float.'
-
-    @staticmethod
-    def validate(val, *args, **kwargs):
-        '''
-        Test for checking if a value is :class:`float`.
-        '''
-
-        if not isinstance(val, float):
-            return False
-
-        return True
+    type_ = float
 
 
-class Number(Types):
+class Number(Instance):
 
     '''
     Sub-class of :class:`Types` class for Number type. Validates if a value is
@@ -131,20 +128,10 @@ class Number(Types):
     '''
 
     _DEFAULT_ERROR = 'Invalid data. Expected an integer or a float).'
-
-    @staticmethod
-    def validate(val, *args, **kwargs):
-        '''
-        Test for checking if a value is :class:`int` or :class:`float`.
-        '''
-
-        if not Integer.validate(val) and not Float.validate(val):
-            return False
-
-        return True
+    type_ = (int, float)
 
 
-class String(Types):
+class String(Instance):
 
     '''
     Sub-class of :class:`Types` class for String type. Validates if a value is
@@ -152,20 +139,10 @@ class String(Types):
     '''
 
     _DEFAULT_ERROR = 'Invalid data. Expected a string.'
-
-    @staticmethod
-    def validate(val, *args, **kwargs):
-        '''
-        Test for checking if a value is :class:`str`.
-        '''
-
-        if not isinstance(val, str) and not isinstance(val, unicode):
-            return False
-
-        return True
+    type_ = basestring
 
 
-class Array(Types):
+class Array(Instance):
 
     '''
     Sub-class of :class:`Types` class for Array type. Validates if a value is
@@ -173,20 +150,10 @@ class Array(Types):
     '''
 
     _DEFAULT_ERROR = 'Invalid data. Expected an array.'
-
-    @staticmethod
-    def validate(val, *args, **kwargs):
-        '''
-        Test for checking if a value is :class:`list` (array).
-        '''
-
-        if not isinstance(val, list):
-            return False
-
-        return True
+    type_ = list
 
 
-class Boolean(Types):
+class Boolean(Instance):
 
     '''
     Sub-class of :class:`Types` class for Boolean type. Validates if a value is
@@ -194,13 +161,7 @@ class Boolean(Types):
     '''
 
     _DEFAULT_ERROR = 'Invalid data. Expected a boolean value.'
-
-    @staticmethod
-    def validate(val, *args, **kwargs):
-        if not isinstance(val, bool):
-            return False
-
-        return True
+    type_ = bool
 
 
 class Function(Types):
