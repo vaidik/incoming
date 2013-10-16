@@ -5,8 +5,6 @@
     Tests for incoming.incoming module.
 '''
 
-import unittest
-
 from . import TestCase
 from .. import datatypes
 from ..incoming import PayloadErrors

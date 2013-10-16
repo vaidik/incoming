@@ -1,7 +1,6 @@
 from __future__ import with_statement
 
 import os
-import sys
 
 from incoming import __version__
 from setuptools import setup, find_packages
