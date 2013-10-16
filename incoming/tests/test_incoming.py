@@ -244,7 +244,7 @@ class TestPayloadValidator(TestCase):
         self.assertFalse(result)
         self.assertItemsEqual(errors.keys(), ['age', 'hobbies'])
 
-    def test_strict_when_global_is_false(self):
+    def test_strict_when_global_is_True(self):
 
         class AnotherDummyValidator(self.DummyValidator):
             strict = True
