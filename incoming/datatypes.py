@@ -5,6 +5,8 @@
     Datatypes that can be used to define the rules of validation.
 '''
 
+from .compat import string_type
+
 
 class Types(object):
 
@@ -139,7 +141,7 @@ class String(Instance):
     '''
 
     _DEFAULT_ERROR = 'Invalid data. Expected a string.'
-    type_ = basestring
+    type_ = string_type
 
 
 class Array(Instance):

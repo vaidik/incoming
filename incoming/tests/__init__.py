@@ -8,6 +8,8 @@
 import sys
 import unittest
 
+from ..incoming import iteritems
+
 
 class TestCase(unittest.TestCase):
 
@@ -21,11 +23,11 @@ class TestCase(unittest.TestCase):
         # First compare keys
         self.assertItemsEqual(item1.keys(), item2.keys())
 
-        for key, val in item1.iteritems():
+        for key, val in iteritems(item1):
             assert item2[key] == val
 
     def assertItemsEqual(self, *args, **kwargs):
-        if sys.version_info >= (2, 7):
+        if sys.version_info == (2, 7):
             super(TestCase, self).assertItemsEqual(*args, **kwargs)
 
         items1 = list(args[0])
