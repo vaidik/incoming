@@ -147,6 +147,13 @@ or::
 
     py.test incoming
 
+Contributors
+------------
+
+- `Vaidik Kapoor <http://github.com/vaidik>`_ (Author)
+- `Dhruv Baldawa <http://github.com/dhruvbaldawa>`_
+- `James Rowe <http://github.com/JNRowe>`_
+
 Licence
 -------
 
