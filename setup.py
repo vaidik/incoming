@@ -11,7 +11,7 @@ install_requires = ['pytest==2.4.1']
 description = ''
 
 path = lambda fname: os.path.join(os.path.dirname(__file__), fname)
-for file_ in ('README.rst', 'CHANGELOG.rst', 'LICENSE.rst'):
+for file_ in ('README.rst', 'LICENSE.rst', 'CHANGELOG.rst'):
     with open(path('%s' % file_)) as f:
         description += f.read() + '\n\n'
 

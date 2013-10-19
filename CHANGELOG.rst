@@ -4,10 +4,15 @@ CHANGELOG
 Development Version
 +++++++++++++++++++
 
+0.2.6
+*****
+
+* Support Python 3.
+
 0.2.5
 *****
 
-* Abstract out =datatypes that perform just Python type checks to reduce code.
+* Abstract out datatypes that perform just Python type checks to reduce code.
 
 0.2.4
 *****
