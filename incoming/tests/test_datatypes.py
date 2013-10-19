@@ -10,6 +10,7 @@ import unittest
 from . import TestCase
 from .. import datatypes
 from ..incoming import PayloadErrors, PayloadValidator
+from ..compat import PY2
 
 
 class TestTypes(TestCase):
@@ -54,7 +55,8 @@ class TestString(TestCase):
 
     def test_string_validates(self):
         self.assertTrue(datatypes.String.validate('Some string'))
-        self.assertTrue(datatypes.String.validate(u'Some string'))
+        if PY2:
+            self.assertTrue(datatypes.String.validate(unicode('Some string')))
         self.assertTrue(datatypes.String.validate(r'Some string'))
         self.assertFalse(datatypes.String.validate(1))
 

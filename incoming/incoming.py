@@ -7,6 +7,7 @@
 
 import copy
 
+from .compat import iteritems
 from .datatypes import Function, JSON, Types
 
 
@@ -191,7 +192,7 @@ class PayloadValidator(object):
         errors = PayloadErrors()
         fields = copy.deepcopy(list(self._fields))
 
-        for key, value in payload.iteritems():
+        for key, value in iteritems(payload):
             if key not in self._fields:
                 if strict:
                     errors.append(key, self.strict_error)
