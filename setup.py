@@ -5,7 +5,7 @@ import os
 from incoming import __version__
 from setuptools import setup, find_packages
 
-install_requires = ['pytest==2.4.1']
+install_requires = []
 
 description = ''
 
@@ -34,4 +34,7 @@ setup(name='incoming',
       zip_safe=False,
       classifiers=classifiers,
       install_requires=install_requires,
-      test_suite='incoming.tests')
+      test_suite='incoming.tests',
+      tests_require=[
+          'pytest',
+      ])
