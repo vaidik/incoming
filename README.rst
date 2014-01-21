@@ -3,9 +3,12 @@ incoming: JSON validation framework for Python
 
 **incoming** is a JSON validation framework.
 
-.. image:: https://travis-ci.org/vaidik/incoming.png
-.. image:: https://coveralls.io/repos/vaidik/incoming/badge.png?branch=master
-    :target: https://coveralls.io/r/vaidik/incoming?branch=master
+|Build Status| |Coverage Status|
+
+.. |Build Status| image:: https://travis-ci.org/vaidik/incoming.png
+   :target: https://travis-ci.org/vaidik/incoming
+.. |Coverage Status| image:: https://coveralls.io/repos/vaidik/incoming/badge.png?branch=master
+   :target: https://coveralls.io/r/vaidik/incoming?branch=master
 
 Overview
 --------
