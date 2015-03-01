@@ -4,6 +4,14 @@ CHANGELOG
 Development Version
 +++++++++++++++++++
 
+0.3.0
+*****
+
+* Pass only the error list of a field in payload to its validator method.
+* Pass errors and payload as keyword arguments.
+* For fields that are not required and have Function as their type, call the
+  validation method/function even if the field is missing in payload.
+
 0.2.6
 *****
 

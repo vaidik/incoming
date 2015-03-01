@@ -51,7 +51,7 @@ class PayloadErrors(object):
         '''
 
         errors = copy.deepcopy(self._errors)
-        for key, val in self._errors.iteritems():
+        for key, val in iteritems(self._errors):
             if not len(val):
                 errors.pop(key)
         return errors
