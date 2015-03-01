@@ -133,7 +133,7 @@ class TestJSON(TestCase):
         result = datatypes.JSON(CustomJSONValidator).validate(
             dict(age=10),
             key='nested',
-            errors=errors)
+            errors=errors['nested'])
         self.assertTrue(result)
         self.assertFalse('nested' in errors)
         self.assertTrue(len(errors.to_dict().keys()) == 0)
@@ -141,7 +141,7 @@ class TestJSON(TestCase):
         result = datatypes.JSON(CustomJSONValidator).validate(
             dict(age='10'),
             key='nested',
-            errors=errors)
+            errors=errors['nested'])
         self.assertFalse(result)
         self.assertTrue('nested' in errors)
         self.assertTrue(len(errors.to_dict().keys()) == 1)
@@ -171,7 +171,7 @@ class TestJSON(TestCase):
         result = datatypes.JSON(CustomJSONValidator).validate(
             dict(age=10),
             key='nested',
-            errors=errors)
+            errors=errors['nested'])
         self.assertFalse(result)
         self.assertTrue('nested' in errors)
         self.assertTrue(len(errors.to_dict().keys()) == 1)

@@ -22,9 +22,8 @@ class Types(object):
                               This param allows specifying field level setting
                               if a particular field is required or not.
         :param str error: a generic error message that will be used by
-                          :class:`incoming.PayloadValidator` in the returned
-                          :class:`incoming.incoming.PayloadErrors` object when
-                          the validation test fails.
+                          :class:`incoming.PayloadValidator` when the
+                          validation test fails.
         '''
 
         self.required = required
@@ -55,7 +54,7 @@ class Types(object):
         :param str key: the key who's value is going to get validated.
         :param val: the value on which the test is to be validated.
         :param payload: the entire payload to which the key and val belong to.
-        :param errors: :class:`incoming.incoming.PayloadErrors` object.
+        :param errors: a reference to list of errors for the key.
         :returns bool: if the validation passed, depends on validate.
         '''
 
@@ -77,7 +76,7 @@ class Types(object):
                             'a bool value.')
 
         if not result:
-            errors.prepend(key, self.error)
+            errors.insert(0, self.error)
             return False
 
         return True
@@ -231,7 +230,7 @@ class JSON(Types):
         is_valid, result = obj.validate(val)
 
         if not is_valid:
-            kwargs['errors'].append(kwargs['key'], result)
+            kwargs['errors'].append(result)
             return False
 
         return True

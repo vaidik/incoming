@@ -17,65 +17,11 @@ class TestPayloadErrors(TestCase):
         self.error_key = 'error_key'
         self.error_msg = 'Error message'
 
-    def test_append_error_in_existing_key(self):
-        errors = PayloadErrors()
-        errors._errors['test_key'] = ['Test error']
-
-        errors.append('test_key', self.error_msg)
-
-        # Check that not more than 1 message was added
-        self.assertEqual(len(errors._errors['test_key']), 2)
-        self.assertEqual(len(errors._errors.keys()), 1)
-
-        # Check that the error msg intended to add was added
-        self.assertEqual(errors._errors['test_key'][1], self.error_msg)
-
-    def test_append_error_in_non_existing_key(self):
-        errors = PayloadErrors()
-        errors._errors['test_key'] = ['Test error']
-
-        errors.append(self.error_key, self.error_msg)
-
-        # Check that not more than 1 message was added
-        self.assertEqual(len(errors._errors['test_key']), 1)
-        self.assertEqual(len(errors._errors[self.error_key]), 1)
-        self.assertEqual(len(errors._errors.keys()), 2)
-
-        # Check that the error msg intended to add was added
-        self.assertEqual(errors._errors[self.error_key][0], self.error_msg)
-
-    def test_prepend_error_in_existing_key(self):
-        errors = PayloadErrors()
-        errors._errors['test_key'] = ['Test error']
-
-        errors.prepend('test_key', self.error_msg)
-
-        # Check that not more than 1 message was added
-        self.assertEqual(len(errors._errors['test_key']), 2)
-        self.assertEqual(len(errors._errors.keys()), 1)
-
-        # Check that the error msg intended to add was added
-        self.assertEqual(errors._errors['test_key'][0], self.error_msg)
-
-    def test_prepend_error_in_non_existing_key(self):
-        errors = PayloadErrors()
-        errors._errors['test_key'] = ['Test error']
-
-        errors.prepend(self.error_key, self.error_msg)
-
-        # Check that not more than 1 message was added
-        self.assertEqual(len(errors._errors['test_key']), 1)
-        self.assertEqual(len(errors._errors[self.error_key]), 1)
-        self.assertEqual(len(errors._errors.keys()), 2)
-
-        # Check that the error msg intended to add was added
-        self.assertEqual(errors._errors[self.error_key][0], self.error_msg)
-
     def test_to_dict(self):
         errors = PayloadErrors()
-        errors.append('key1', 'value1.1')
-        errors.append('key1', 'value1.2')
-        errors.append('key2', 'value2')
+        errors['key1'].append('value1.1')
+        errors['key1'].append('value1.2')
+        errors['key2'].append('value2')
 
         errors_dict = errors.to_dict()
         self.assertTrue(isinstance(errors_dict, dict))
@@ -83,9 +29,9 @@ class TestPayloadErrors(TestCase):
 
     def test_error_type_membership_test(self):
         errors = PayloadErrors()
-        errors.append('key1', 'value1.1')
-        errors.append('key1', 'value1.2')
-        errors.append('key2', 'value2')
+        errors['key1'].append('value1.1')
+        errors['key1'].append('value1.2')
+        errors['key2'].append('value2')
 
         self.assertTrue('key1' in errors)
         self.assertTrue('key2' in errors)
@@ -349,6 +295,37 @@ class TestPayloadValidator(TestCase):
         validator.age.func = 'validate_hobbies'
         validator._replace_string_args()
         self.assertFalse(callable(validator.age.func))
+
+    def test_function_validator_gets_called_even_when_required_is_false(self):
+        '''
+        Test that validation function/method is called even when field is not
+        required.
+        '''
+
+        class CustomValidator(PayloadValidator):
+            age = datatypes.Function(func='validate_age')
+            hobbies = datatypes.Function(func='validate_hobbies',
+                                         required=False)
+
+            # These are set only for testing
+            validate_hobbies_called = False
+            validate_age_called = False
+
+            def validate_hobbies(self, val, *args, **kwargs):
+                self.validate_hobbies_called = True
+                return False if len(val) == 0 else True
+
+            def validate_age(self, val, *args, **kwargs):
+                self.validate_age_called = True
+                if val < 18:
+                    return False
+                return True
+
+        validator = CustomValidator()
+        result, errors = validator.validate(
+            dict(hobbies=['a']))
+        self.assertTrue(validator.validate_hobbies_called)
+        self.assertFalse(validator.validate_age_called)
 
     def test_function_datatype_validates_with_validator_method(self):
         '''

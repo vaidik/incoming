@@ -28,31 +28,10 @@ class PayloadErrors(object):
     def __init__(self):
         self._errors = {}
 
-    def prepend(self, key, error):
-        '''
-        Prepends error in the list of a particular type of error.
-
-        :param str key: key used to hold errors of a particular type.
-        :param str error: the error string that needs to be logged.
-        '''
-
-        try:
-            self._errors[key].insert(0, error)
-        except KeyError:
-            self._errors[key] = [error]
-
-    def append(self, key, error):
-        '''
-        Appends error in the list of a particular type of error.
-
-        :param str key: key used to hold errors of a particular type.
-        :param str error: the error string that needs to be logged.
-        '''
-
-        try:
-            self._errors[key].append(error)
-        except KeyError:
-            self._errors[key] = [error]
+    def __getitem__(self, key):
+        if key not in self._errors:
+            self._errors[key] = []
+        return self._errors[key]
 
     def has_errors(self):
         '''
@@ -61,7 +40,7 @@ class PayloadErrors(object):
         :returns bool: True if has errors, else False.
         '''
 
-        return True if len(self._errors.keys()) else False
+        return True if len(self.to_dict().keys()) else False
 
     def to_dict(self):
         '''
@@ -71,7 +50,11 @@ class PayloadErrors(object):
         :returns dict: a dictionary of errors
         '''
 
-        return self._errors
+        errors = copy.deepcopy(self._errors)
+        for key, val in self._errors.iteritems():
+            if not len(val):
+                errors.pop(key)
+        return errors
 
     def __contains__(self, key):
         '''
@@ -83,7 +66,7 @@ class PayloadErrors(object):
         :returns bool: the test result of membership of the provided key
         '''
 
-        return key in self._errors.keys()
+        return key in self.to_dict().keys()
 
 
 class PayloadValidator(object):
@@ -195,9 +178,10 @@ class PayloadValidator(object):
         for key, value in iteritems(payload):
             if key not in self._fields:
                 if strict:
-                    errors.append(key, self.strict_error)
+                    errors[key].append(self.strict_error)
             else:
-                getattr(self, key).test(key, value, payload, errors)
+                getattr(self, key).test(key, value, payload=payload,
+                                        errors=errors[key])
 
                 # Remove the key that has been checked
                 fields.remove(key)
@@ -206,11 +190,15 @@ class PayloadValidator(object):
             rule = getattr(self, field)
 
             if rule.required is None:
-                if required:
-                    errors.append(field, self.required_error)
+                required = required
             else:
-                if rule.required:
-                    errors.append(field, self.required_error)
+                required = rule.required
+
+            if required:
+                errors[field].append(self.required_error)
+            elif isinstance(rule, Function):
+                rule.test(field, payload.get(field, None),
+                          payload=payload, errors=errors[field])
 
         return (False, errors.to_dict()) if errors.has_errors() else (True,
                                                                       None)
