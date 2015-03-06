@@ -55,36 +55,30 @@ Basic Usage
 
 
     class MovieValidator(PayloadValidator):
-
         name = datatypes.String()
-        rating = datatypes.Function('validate_rating',
-                                    error='Rating must be in between 1 and 10.')
+        rating = datatypes.Function(
+            'validate_rating',
+            error='Rating must be in between 1 and 10.',
+        )
         actors = datatypes.Array()
         is_3d = datatypes.Boolean()
-        release_year = datatypes.Function('validate_release_year',
-                                          error=('Release year must be in between '
-                                                 '1800 and current year.'))
+        release_year = datatypes.Function(
+            'validate_release_year',
+            error='Release year must be in between 1800 and current year.',
+        )
 
         # validation method can be a regular method
         def validate_rating(self, val, *args, **kwargs):
-            if not isinstance(val, int):
-                return False
-
-            if val < 1 or val > 10:
-                return False
-
-            return True
+            return isinstance(val, int) and val >= 1 and val <= 10
 
         # validation method can be a staticmethod as well
         @staticmethod
         def validate_release_year(val, *args, **kwargs):
-            if not isinstance(val, int):
-                return False
-
-            if val < 1800 or val > date.today().year:
-                return False
-
-            return True
+            return all((
+                isinstance(val, int),
+                val >= 1800,
+                val <= date.today().year,
+            ))
 
     payload = {
         'name': 'Avengers',
