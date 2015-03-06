@@ -213,10 +213,10 @@ class JSON(Types):
     def __init__(self, cls, *args, **kwargs):
         '''
         :param cls: sub-class of :class:`incoming.PayloadValidator` for
-                    validating nested JSON. Class object can be accepted. In
-                    case you want to have the class nested withing the parent
-                    validator, you can pass the name of the class as a string
-                    as well.
+                    validating nested JSON. If you are using a class nested
+                    within the parent validator, you must define the inner
+                    class before using it, so that the name of the inner class
+                    is defined in the scope of the parent class.
         '''
 
         self.cls = cls

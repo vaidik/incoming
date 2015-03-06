@@ -21,15 +21,9 @@ must be initialized and should be a an object of one of the classes of
 Validating Nested JSON
 ----------------------
 
-Validating nested JSON is similar to how you validate payloads without nested
-JSON. What you do is that you write a separate validator for nested JSON as
-well and use the :class:`incoming.datatypes.JSON` datatype to tell incoming
-to use another validator for the nested JSON.
-
-Global Validator Class for Nested JSON
-++++++++++++++++++++++++++++++++++++++
-
-Here is an example of writing validators for nested JSON::
+Validating nested JSON is similar to how you validate other payloads. Simply,
+write a validator for each JSON and then use the
+:class:`incoming.datatypes.JSON` datatype to validate the nested JSON::
 
     >>> class AddressValidator(PayloadValidator):
     ...     street = datatypes.String()
@@ -46,31 +40,24 @@ Here is an example of writing validators for nested JSON::
     >>> PersonValidator().validate(dict(name='Some name', age=19, address=dict(street='Brannan, SF', country=0)))
     (False, {'address': ['Invalid data. Expected JSON.', {'country': ['Invalid data. Expected a string.']}]})
 
-Nested Validator Class for Nested JSON
-++++++++++++++++++++++++++++++++++++++
-
-Here is another way of writing the above example where the ``AddressValidator``
-is a nested class of ``PersonValidator``::
+If you want to use a nested class instead, just remember to define the inner
+class before using it, so that the name of the inner class is available in the
+scope of the parent class::
 
     >>> class PersonValidator(PayloadValidator):
-    ...     name = datatypes.String()
-    ...     age = datatypes.Integer()
-    ...     
-    ...     # Note that the validator class' name is provided as a str value
-    ...     address = datatypes.JSON('AddressValidator')
-    ...     
     ...     class AddressValidator(PayloadValidator):
     ...         street = datatypes.String()
     ...         country = datatypes.String()
+    ...
+    ...     name = datatypes.String()
+    ...     age = datatypes.Integer()
+    ...     address = datatypes.JSON(AddressValidator)
     ...
     >>> PersonValidator().validate(dict(name='Some name', age=19, address=dict(street='Brannan, SF', country='USA')))
     (True, None)
     >>>
     >>> PersonValidator().validate(dict(name='Some name', age=19, address=dict(street='Brannan, SF', country=0)))
     (False, {'address': ['Invalid data. Expected JSON.', {'country': ['Invalid data. Expected a string.']}]})
-
-.. note:: when the validator class is nested, the name of the class must be
-          provided as an :class:`str` value.
 
 Custom error messages for every field
 -------------------------------------
