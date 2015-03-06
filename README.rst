@@ -17,10 +17,9 @@ Validating anything can get really messy. JSON being one of the most used
 formats for data exchange, **incoming** aims at solving the problem of
 validating JSON with structure and ease.
 
-**incoming** is a small framework for validating JSON. Its up to you where and
+**incoming** is a small framework for validating JSON. It's up to you where and
 how to use it. A common use-case (and the primary reason why I wrote this
-framework) was using it for writing HTTP servers to validate incoming JSON
-payload.
+framework) was using it to validate incoming JSON when writing HTTP servers.
 
 Features
 ++++++++
@@ -85,7 +84,7 @@ Basic Usage
         'rating': 5,
         'actors': [
             'Robert Downey Jr.',
-            'Samual L. Jackson',
+            'Samuel L. Jackson',
             'Scarlett Johansson',
             'Mark Ruffalo'
         ],
@@ -100,7 +99,7 @@ Basic Usage
         'rating': 11,
         'actors': [
             'Robert Downey Jr.',
-            'Samual L. Jackson',
+            'Samuel L. Jackson',
             'Scarlett Johansson',
             'Mark Ruffalo'
         ],
@@ -110,7 +109,7 @@ Basic Usage
     result, errors = MovieValidator().validate(payload)
     assert result and errors is None, 'Validation failed.\n%s' % json.dumps(errors, indent=2)
 
-Run the above script, you shall get a response like so::
+If you run the above script, you will get::
 
     Traceback (most recent call last):
       File "code.py", line 67, in <module>
@@ -138,7 +137,7 @@ Documentation is available on `Read The Docs`_.
 Tests
 -----
 
-Run tests like so::
+Simply run::
 
     python setup.py test
 
