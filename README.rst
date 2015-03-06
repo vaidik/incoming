@@ -19,7 +19,7 @@ validating JSON with structure and ease.
 
 **incoming** is a small framework for validating JSON. It's up to you where and
 how to use it. A common use-case (and the primary reason why I wrote this
-framework) was using it to validate incoming JSON when writing HTTP servers.
+framework) is validating incoming JSON when writing HTTP servers.
 
 Features
 ++++++++
