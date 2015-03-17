@@ -17,10 +17,9 @@ Validating anything can get really messy. JSON being one of the most used
 formats for data exchange, **incoming** aims at solving the problem of
 validating JSON with structure and ease.
 
-**incoming** is a small framework for validating JSON. Its up to you where and
+**incoming** is a small framework for validating JSON. It's up to you where and
 how to use it. A common use-case (and the primary reason why I wrote this
-framework) was using it for writing HTTP servers to validate incoming JSON
-payload.
+framework) is validating incoming JSON when writing HTTP servers.
 
 Features
 ++++++++
@@ -55,43 +54,37 @@ Basic Usage
 
 
     class MovieValidator(PayloadValidator):
-
         name = datatypes.String()
-        rating = datatypes.Function('validate_rating',
-                                    error='Rating must be in between 1 and 10.')
+        rating = datatypes.Function(
+            'validate_rating',
+            error='Rating must be in between 1 and 10.',
+        )
         actors = datatypes.Array()
         is_3d = datatypes.Boolean()
-        release_year = datatypes.Function('validate_release_year',
-                                          error=('Release year must be in between '
-                                                 '1800 and current year.'))
+        release_year = datatypes.Function(
+            'validate_release_year',
+            error='Release year must be in between 1800 and current year.',
+        )
 
         # validation method can be a regular method
         def validate_rating(self, val, *args, **kwargs):
-            if not isinstance(val, int):
-                return False
-
-            if val < 1 or val > 10:
-                return False
-
-            return True
+            return isinstance(val, int) and val >= 1 and val <= 10
 
         # validation method can be a staticmethod as well
         @staticmethod
         def validate_release_year(val, *args, **kwargs):
-            if not isinstance(val, int):
-                return False
-
-            if val < 1800 or val > date.today().year:
-                return False
-
-            return True
+            return all((
+                isinstance(val, int),
+                val >= 1800,
+                val <= date.today().year,
+            ))
 
     payload = {
         'name': 'Avengers',
         'rating': 5,
         'actors': [
             'Robert Downey Jr.',
-            'Samual L. Jackson',
+            'Samuel L. Jackson',
             'Scarlett Johansson',
             'Mark Ruffalo'
         ],
@@ -106,7 +99,7 @@ Basic Usage
         'rating': 11,
         'actors': [
             'Robert Downey Jr.',
-            'Samual L. Jackson',
+            'Samuel L. Jackson',
             'Scarlett Johansson',
             'Mark Ruffalo'
         ],
@@ -116,7 +109,7 @@ Basic Usage
     result, errors = MovieValidator().validate(payload)
     assert result and errors is None, 'Validation failed.\n%s' % json.dumps(errors, indent=2)
 
-Run the above script, you shall get a response like so::
+If you run the above script, you will get::
 
     Traceback (most recent call last):
       File "code.py", line 67, in <module>
@@ -144,7 +137,7 @@ Documentation is available on `Read The Docs`_.
 Tests
 -----
 
-Run tests like so::
+Simply run::
 
     python setup.py test
 
