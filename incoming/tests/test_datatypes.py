@@ -125,6 +125,37 @@ class TestFunction(TestCase):
 
 class TestJSON(TestCase):
 
+    def test_json_nested_json(self):
+        class CustomJSONValidator(PayloadValidator):
+            class InnerJSONValidator(PayloadValidator):
+                foo = datatypes.String()
+
+            age = datatypes.Integer()
+            inner = datatypes.JSON(InnerJSONValidator)
+
+        validator = datatypes.JSON(CustomJSONValidator)
+        self.assertEquals(
+            validator.cls.inner.cls.__name__,
+            'InnerJSONValidator',
+        )
+
+        errors = PayloadErrors()
+        result = datatypes.JSON(CustomJSONValidator).validate(
+            dict(age=10, inner=dict(foo='bar')),
+            key='nested',
+            errors=errors['nested'])
+        self.assertTrue(result)
+        self.assertFalse('nested' in errors)
+        self.assertTrue(len(errors.to_dict().keys()) == 0)
+
+        result = datatypes.JSON(CustomJSONValidator).validate(
+            dict(age='10', inner=dict(foo=42)),
+            key='nested',
+            errors=errors['nested'])
+        self.assertFalse(result)
+        self.assertTrue('nested' in errors)
+        self.assertTrue(len(errors.to_dict().keys()) == 1)
+
     def test_json_validates_normal_types(self):
         class CustomJSONValidator(PayloadValidator):
             age = datatypes.Integer()
