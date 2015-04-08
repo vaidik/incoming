@@ -4,6 +4,15 @@ CHANGELOG
 Development Version
 +++++++++++++++++++
 
+0.3.1
+*****
+
+* Documentation changes on using Nested JSON validators. Passing name of nested
+  class to `incoming.datatypes.JSON` is now discouraged. This means that the
+  inner class has to be correctly scoped. `Read more here <http://
+  incoming.readthedocs.org/en/latest/payloadvalidators.html
+  #validating-nested-json>`__.
+
 0.3.0
 *****
 
